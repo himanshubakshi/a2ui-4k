@@ -279,6 +279,8 @@ internal class DataModelContext(
         else "$basePath/$path"
     }
 
+    override fun get(path: String): JsonElement? = model.get(resolvePath(path))
+
     override fun getString(path: String): String? = model.getString(resolvePath(path))
 
     override fun getNumber(path: String): Double? = model.getNumber(resolvePath(path))

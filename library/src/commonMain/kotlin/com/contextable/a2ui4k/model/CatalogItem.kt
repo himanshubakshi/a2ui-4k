@@ -150,6 +150,12 @@ interface DataContext {
     fun getObjectKeys(path: String): List<String>?
 
     /**
+     * Gets the raw JSON element at the given path, preserving its type (array, object, primitive).
+     * Prefer this over getString/getNumber/getBoolean when the type is unknown or may be an array.
+     */
+    fun get(path: String): kotlinx.serialization.json.JsonElement?
+
+    /**
      * Updates a value at the given path.
      */
     fun update(path: String, value: Any?)

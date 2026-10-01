@@ -245,9 +245,7 @@ object FunctionEvaluator {
             is JsonObject -> when {
                 element.containsKey("path") -> {
                     val path = element["path"]?.jsonPrimitive?.contentOrNull ?: return null
-                    dataContext.getString(path)?.let { JsonPrimitive(it) }
-                        ?: dataContext.getNumber(path)?.let { JsonPrimitive(it) }
-                        ?: dataContext.getBoolean(path)?.let { JsonPrimitive(it) }
+                    dataContext.get(path)
                 }
                 element.containsKey("call") -> {
                     val call = element["call"]?.jsonPrimitive?.contentOrNull ?: return null
