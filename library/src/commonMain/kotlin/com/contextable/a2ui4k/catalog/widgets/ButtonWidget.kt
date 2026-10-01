@@ -207,9 +207,7 @@ private fun resolveContext(contextObject: JsonObject?, dataContext: DataContext)
         val resolvedValue: JsonElement? = when {
             value is JsonObject && value.containsKey("path") -> {
                 val path = value["path"]?.jsonPrimitive?.content ?: ""
-                dataContext.getString(path)?.let { JsonPrimitive(it) }
-                    ?: dataContext.getNumber(path)?.let { JsonPrimitive(it) }
-                    ?: dataContext.getBoolean(path)?.let { JsonPrimitive(it) }
+                dataContext.get(path)
             }
             value is JsonObject && value.containsKey("call") -> {
                 val call = value["call"]?.jsonPrimitive?.content

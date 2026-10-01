@@ -37,6 +37,7 @@ class FunctionEvaluatorTest {
         override fun getStringList(path: String): List<String>? = null
         override fun getArraySize(path: String): Int? = null
         override fun getObjectKeys(path: String): List<String>? = null
+        override fun get(path: String): kotlinx.serialization.json.JsonElement? = null
         override fun update(path: String, value: Any?) {}
         override fun withBasePath(basePath: String): DataContext = this
     }
@@ -213,6 +214,32 @@ class FunctionEvaluatorTest {
     fun required_numberIsTrue() {
         val args = JsonObject(mapOf("value" to JsonPrimitive(42)))
         assertEquals(true, FunctionEvaluator.evaluateBoolean("required", args, emptyContext))
+    }
+
+    @Test
+    fun required_emptyArrayIsFalse() {
+        // Spec: required over an empty array must return false (multi-select with nothing chosen).
+        // Regression: DataModel.getString() previously threw on array paths instead of returning null.
+        val args = JsonObject(mapOf("value" to JsonArray(emptyList())))
+        assertEquals(false, FunctionEvaluator.evaluateBoolean("required", args, emptyContext))
+    }
+
+    @Test
+    fun required_nonEmptyArrayIsTrue() {
+        val args = JsonObject(mapOf("value" to JsonArray(listOf(JsonPrimitive("a")))))
+        assertEquals(true, FunctionEvaluator.evaluateBoolean("required", args, emptyContext))
+    }
+
+    @Test
+    fun required_arrayPathResolvesRawElement() {
+        // Path resolution must return the raw JsonElement, not coerce through getString.
+        // A context where /selections holds ["x"] — required must see the array, not null.
+        val context = object : DataContext by emptyContext {
+            override fun get(path: String) = if (path == "/selections")
+                JsonArray(listOf(JsonPrimitive("x"))) else null
+        }
+        val args = JsonObject(mapOf("value" to JsonObject(mapOf("path" to JsonPrimitive("/selections")))))
+        assertEquals(true, FunctionEvaluator.evaluateBoolean("required", args, context))
     }
 
     // --- email ---
@@ -473,6 +500,7 @@ class FunctionEvaluatorTest {
             override fun getStringList(path: String): List<String>? = null
             override fun getArraySize(path: String): Int? = null
             override fun getObjectKeys(path: String): List<String>? = null
+            override fun get(path: String): kotlinx.serialization.json.JsonElement? = null
             override fun update(path: String, value: Any?) {}
             override fun withBasePath(basePath: String): DataContext = this
         }
@@ -609,6 +637,7 @@ class FunctionEvaluatorTest {
             override fun getStringList(path: String): List<String>? = null
             override fun getArraySize(path: String): Int? = null
             override fun getObjectKeys(path: String): List<String>? = null
+            override fun get(path: String): kotlinx.serialization.json.JsonElement? = null
             override fun update(path: String, value: Any?) {}
             override fun withBasePath(basePath: String): DataContext = this
         }

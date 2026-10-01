@@ -279,6 +279,8 @@ internal class DataModelContext(
         else "$basePath/$path"
     }
 
+    override fun get(path: String): JsonElement? = model.get(resolvePath(path))
+
     override fun getString(path: String): String? = model.getString(resolvePath(path))
 
     override fun getNumber(path: String): Double? = model.getNumber(resolvePath(path))
@@ -297,10 +299,21 @@ internal class DataModelContext(
             is String -> model.updateString(resolvedPath, value)
             is Number -> model.updateNumber(resolvedPath, value.toDouble())
             is Boolean -> model.updateBoolean(resolvedPath, value)
+            is List<*> -> model.update(resolvedPath, serializeList(value))
             null -> model.update(resolvedPath, JsonNull)
             else -> model.updateString(resolvedPath, value.toString())
         }
     }
+
+    private fun serializeList(list: List<*>): JsonArray = JsonArray(list.mapNotNull { element ->
+        when (element) {
+            is String      -> JsonPrimitive(element)
+            is Boolean     -> JsonPrimitive(element)
+            is Number      -> JsonPrimitive(element.toDouble())
+            is JsonElement -> element
+            else           -> null
+        }
+    })
 
     override fun withBasePath(basePath: String): DataContext {
         val newBase = if (this.basePath.isEmpty()) basePath
